@@ -268,6 +268,50 @@ if ($download == "txt" && has_capability('mod/choicegroup:downloadresponses', $c
     }
     exit;
 }
+
+// print text file
+if ($download == "txtshort" && has_capability('mod/choicegroup:downloadresponses', $context)) {
+    $filename = clean_filename("$course->shortname ".strip_tags(format_string($choicegroup->name,true))).'.txt';
+
+    header("Content-Type: application/download\n");
+    header("Content-Disposition: attachment; filename=\"$filename\"");
+    header("Expires: 0");
+    header("Cache-Control: must-revalidate,post-check=0,pre-check=0");
+    header("Pragma: public");
+
+    /// Print names of all the fields
+
+    echo "#Username\t";
+    echo get_string("group"). "\t";
+    echo get_string("choice","choicegroup"). "\n";
+
+    /// generate the data for the body of the spreadsheet
+    $i=0;
+    if ($users) {
+        $displayed = array();
+        foreach ($users as $option => $userid) {
+            foreach($userid as $user) {
+                if (in_array($user->id, $displayed)) {
+                    continue;
+                }
+                $displayed[] = $user->id;
+                echo $user->username. "\t";
+                $ug2 = array();
+                if ($usergrps = groups_get_all_groups($course->id, $user->id)) {
+                    foreach ($groups_ids as $gid) {
+                        if (array_key_exists($gid, $usergrps)) {
+                            $ug2[] = format_string($usergrps[$gid]->name);
+                        }
+                    }
+                }
+                echo implode(', ', $ug2) . "\t";
+                echo "\n";
+            }
+        }
+    }
+    exit;
+}
+
 // Show those who haven't answered the question.
 if (!empty($choicegroup->showunanswered)) {
     $choicegroup->option[0] = get_string('notanswered', 'choicegroup');
@@ -293,6 +337,10 @@ if (!empty($users) && has_capability('mod/choicegroup:downloadresponses',$contex
 
     $options["download"] = "txt";
     $button = $OUTPUT->single_button(new moodle_url("report.php", $options), get_string("downloadtext"));
+    $downloadoptions[] = html_writer::tag('li', $button, array('class'=>'reportoption mt-1'));
+
+    $options["download"] = "txtshort";
+    $button = $OUTPUT->single_button(new moodle_url("report.php", $options), 'Download usernames and groups only in text format');
     $downloadoptions[] = html_writer::tag('li', $button, array('class'=>'reportoption mt-1'));
 
     $downloadlist = html_writer::tag('ul', implode('', $downloadoptions));
