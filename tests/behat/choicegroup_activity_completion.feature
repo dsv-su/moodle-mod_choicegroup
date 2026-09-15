@@ -213,6 +213,7 @@ Feature: View activity completion information in the choicegroup activity
     And the "Choose a group" completion condition of "Choose your group" is displayed as "todo"
     And I set the field "Group A" to "1"
     And I press "Save my choice"
+    And the "Group A" "radio" should be disabled
     And the "Choose a group" completion condition of "Choose your group" is displayed as "done"
     # Teacher view.
     And I am on the "Choose your group" "choicegroup activity" page logged in as teacher1
